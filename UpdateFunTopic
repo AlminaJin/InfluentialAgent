@@ -1,0 +1,637 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
+import import_ipynb
+import os
+import openai
+import requests
+import json
+import re
+import pickle
+from pathlib import Path
+import numpy as np
+import random
+import time
+from IPython.display import clear_output
+from textblob import TextBlob
+import copy
+import time
+from requests.exceptions import SSLError
+from urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter
+# import logging
+import math
+# logging.basicConfig(level=logging.DEBUG)
+
+
+# In[2]:
+
+
+# def make_request(url,headers,data):
+#     try:
+#         # Attempt to make your request here
+#         r = requests.post(url, headers=headers, data=json.dumps(data))
+#     except SSLError as e:
+# #         print(f"SSL Error occurred: {str(e)}. Retrying in 5 seconds.")
+# #         time.sleep(5)
+# #         r = make_request(url,headers,data)
+#         r = "Retry"
+#     return r
+
+# s = requests.Session()
+
+# # Define the number of retries
+# retries = Retry(total=5, backoff_factor=1, status_forcelist=[ 502, 503, 504 ])
+# s.mount('https://', HTTPAdapter(max_retries=retries))
+timeout_seconds = 5
+
+from requests.exceptions import SSLError, Timeout
+
+def make_request(url,headers,data):
+    try:
+        # Attempt to make your request here
+        r = requests.post(url, headers=headers, data=json.dumps(data),timeout= 5)
+    except SSLError as e:
+        print(f"SSL Error occurred: {str(e)}. Retrying in 5 seconds.")
+        time.sleep(5)
+        r = make_request(url,headers,data)
+    except Timeout:
+        print(f"Request to {url} timed out after 5 seconds. Retrying in 5 seconds.")
+        time.sleep(5)
+        r = make_request(url, headers, data)
+    return r
+
+# In[3]:
+
+
+# agent action
+# request ChatGPT api
+# narrowGPT temperature = 1.0, topp = 0.5
+# creativeGPT temperature = 1.4, topp = 0.95
+
+
+
+def ChatGPT(inputMessage):
+    OPENAI_API_KEY = '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'
+    # set up the API endpoint URL
+    url = "https://api.openai.com/v1/chat/completions"
+
+    # set up the API request headers and data
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer "+OPENAI_API_KEY
+    }
+
+    data = {
+        "messages": inputMessage,
+#         "max_tokens": 2000,
+        "temperature": 0.1,
+#         "temperature":temperature,
+        "top_p":0.5,
+        "n": 1,
+        "stop": "}",
+        "model": "gpt-3.5-turbo"
+    }
+
+    # send the API request and get the response
+#     response = requests.post(url, headers=headers, data=json.dumps(data))
+    response = make_request(url,headers,data)
+    
+#     if response == "Retry":
+#         completed_sentence = "Retry"
+#     else:
+    # extract the completed sentence from the response
+    completed_sentence = response.json()
+#     ['choices'][0]['text']
+
+    # print the completed sentence
+    return completed_sentence
+
+
+# In[4]:
+
+
+def creativeGPT(inputMessage):
+    OPENAI_API_KEY = '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'
+    # set up the API endpoint URL
+    url = "https://api.openai.com/v1/chat/completions"
+
+    # set up the API request headers and data
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer "+OPENAI_API_KEY
+    }
+
+    data = {
+        "messages": inputMessage,
+#         "max_tokens": 2000,
+#         "temperature": 0.1,
+        "temperature":1.4,
+        "top_p":0.95,
+        "n": 1,
+        "stop": "}",
+        "model": "gpt-3.5-turbo"
+    }
+
+    # send the API request and get the response
+#     response = requests.post(url, headers=headers, data=json.dumps(data))
+    response = make_request(url,headers,data)
+    
+    # extract the completed sentence from the response
+    completed_sentence = response.json()
+#     ['choices'][0]['text']
+
+    # print the completed sentence
+    return completed_sentence
+
+def fixGPT(inputMessage):
+    OPENAI_API_KEY = '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'
+    # set up the API endpoint URL
+    url = "https://api.openai.com/v1/chat/completions"
+
+    # set up the API request headers and data
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer "+OPENAI_API_KEY
+    }
+
+    data = {
+        "messages": inputMessage,
+#         "max_tokens": 2000,
+#         "temperature": 0.1,
+        "temperature":0.1,
+        "top_p":0.5,
+        "n": 1,
+        "stop": "}",
+        "model": "gpt-3.5-turbo"
+    }
+
+    # send the API request and get the response
+#     response = requests.post(url, headers=headers, data=json.dumps(data))
+    response = make_request(url,headers,data)
+    
+    # extract the completed sentence from the response
+    completed_sentence = response.json()
+#     ['choices'][0]['text']
+
+    # print the completed sentence
+    return completed_sentence
+
+def pplGPT(inputMessage):
+    OPENAI_API_KEY = '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'
+    # set up the API endpoint URL
+    url = "https://api.openai.com/v1/chat/completions"
+
+    # set up the API request headers and data
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer "+OPENAI_API_KEY
+    }
+
+    data = {
+        "messages": inputMessage,
+#         "max_tokens": 2000,
+        "temperature": 0.1,
+#         "temperature":temperature,
+        "top_p":0.5,
+        "n": 1,
+        "stop": "}",
+        "model": "gpt-3.5-turbo",
+        "max_tokens":1,
+        "logprobs": True
+    }
+
+    # send the API request and get the response
+#     response = requests.post(url, headers=headers, data=json.dumps(data))
+    response = make_request(url,headers,data)
+    
+#     if response == "Retry":
+#         completed_sentence = "Retry"
+#     else:
+    # extract the completed sentence from the response
+    completed_sentence = response.json()
+#     ['choices'][0]['text']
+
+    # print the completed sentence
+    return completed_sentence
+
+
+# Stream
+def createInitialTweet(persona):
+    inputData = persona[0]+" is "+persona[2]+". "+persona[1]+" posted the following tweet on Twitter: {'data': {'user':'"+persona[0]+ "','text':"
+    result = ChatGPT([{"role":"system","content":inputData}])
+#     ['choices'][0]['message']['content']
+    while 'choices' not in result.keys():
+        print(result)
+        result = ChatGPT([{"role":"system","content":inputData}])
+    outputData = result['choices'][0]['message']['content']
+    return outputData
+
+
+def buildTweetDict(personaDict):
+    tweetDict = {}
+    for i in personaDict.keys():
+        content = createInitialTweetDict(i)
+        tweetDict[i] = content
+    return tweetDict
+
+
+def createFirstSentence(persona, tweet):
+    inputData = persona[0]+" posted tweets about 'a society without gender':" + tweet + ". " + persona[0] + " saw the following tweets about 'a society without gender' on homepage:"
+    return inputData
+
+
+
+def createOtherSentence(persona, tweet):
+    inputData = "{'data':{'user':'"+persona[0] + "','text':'"+ tweet +"'}}. "
+    return inputData
+
+
+def createFinalSentence(persona):
+    inputData = persona[0]+"shared the following tweet on this topic:{'data':{'user':'"+persona[0]+"','text':'"
+    return inputData
+
+
+def interactInput(personaKey,personaDict,linkDict,tweetDict,num_iter):
+    sentence = createFirstSentence(personaDict[personaKey],tweetDict[personaKey][num_iter])
+    if len(linkDict[personaKey])>2:
+        candidates = random.choices(linkDict[personaKey],k=2)
+    else:
+        candidates = linkDict[personaKey]
+    for i in candidates:
+        influencer = personaDict[i]
+        otherSentence = createOtherSentence(influencer, tweetDict[i][num_iter])
+        sentence = sentence + otherSentence
+    sentence = sentence + createFinalSentence(personaDict[personaKey])
+    return sentence
+
+
+def updateFixInteractTweet(sentence, GPTtype):
+#     logging.info(f"Starting process with args: {personaKey,personaDict,linkDict,tweetDict,num_iter, GPTtype}")
+#     sentence = createFirstSentence(personaDict[personaKey])
+#     for i in linkDict[personaKey]:
+#         influencer = personaDict[i]
+#         otherSentence = createOtherSentence(influencer, tweetDict[i][num_iter])
+#         sentence = sentence + otherSentence
+#     sentence = sentence + createFinalSentence(personaDict[personaKey])
+    if GPTtype == 0:
+        result = fixGPT([{"role":"system","content":sentence}])
+    if GPTtype == 1:
+        result = creativeGPT([{"role":"system","content":sentence}])
+    while 'choices' not in result.keys():
+        print(result)
+        result = fixGPT([{"role":"system","content":sentence}])
+    outputData = result['choices'][0]['message']['content']
+    return outputData
+
+
+def updateInteractTweet(sentence, GPTtype):
+#     logging.info(f"Starting process with args: {personaKey,personaDict,linkDict,tweetDict,num_iter, GPTtype}")
+#     sentence = createFirstSentence(personaDict[personaKey])
+#     for i in linkDict[personaKey]:
+#         influencer = personaDict[i]
+#         otherSentence = createOtherSentence(influencer, tweetDict[i][num_iter])
+#         sentence = sentence + otherSentence
+#     sentence = sentence + createFinalSentence(personaDict[personaKey])
+    if GPTtype ==1:
+        result = creativeGPT([{"role":"system","content":sentence}])
+        while 'choices' not in result.keys():
+            print(result)
+            result = creativeGPT([{"role":"system","content":sentence}])
+    else:
+        result = ChatGPT([{"role":"system","content":sentence}])
+        while 'choices' not in result.keys():
+            print(result)
+            result = ChatGPT([{"role":"system","content":sentence}])
+    
+    outputData = result['choices'][0]['message']['content']
+    
+    # #     logging.info(f"Completed process with args: {personaKey,personaDict,linkDict,tweetDict,num_iter, GPTtype}")
+    #     else:
+    #         outputData = "Retry"
+    return outputData
+     
+
+def updateRetryTweet(sentence,GPTtype):
+    if GPTtype ==1:
+        result = creativeGPT([{"role":"system","content":sentence}])
+        while 'choices' not in result.keys():
+            result = creativeGPT([{"role":"system","content":sentence}])
+    else:
+        result = ChatGPT([{"role":"system","content":sentence}])
+        while 'choices' not in result.keys():
+            result = ChatGPT([{"role":"system","content":sentence}])
+    outputData = result['choices'][0]['message']['content']
+    return outputData
+    
+
+# In[6]:
+
+
+def makeInitialTweet(generateUserDict):
+    # create initial tweetDict
+    tweetDict= {}
+    for i in generateUserDict.keys():
+        tweetDict[i] = []
+        tweetDict[i].append(createInitialTweet(generateUserDict[i]))
+    return tweetDict
+
+
+# In[7]:
+
+# def compute_perplexity(text,opinion, model="text-davinci-003"):
+#     openai.api_key = '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'
+#     # Split the text into tokens (words or subwords)
+#     whole = text+opinion
+#     textTokens = text.split()
+#     wholeTokens = whole.split()
+
+#     # Initialize variables
+#     total_log_probability = 0
+#     token_count = 0
+
+#     for i in range(len(textTokens), len(wholeTokens)+1):
+#         # Prepare the prompt for the model
+#         prompt = " ".join(wholeTokens[:i])
+
+#         # Get the model's output
+#         response = openai.Completion.create(
+#             engine=model,
+#             prompt=prompt,
+#             max_tokens=1,
+#             n=1,
+#             logprobs=1
+#         )
+
+#         # Get the log probability of the next word
+# #         next_word = tokens[i]
+#         log_prob = response['choices'][0]['logprobs']['token_logprobs'][0]
+
+#         # Add the log probability to the total
+#         total_log_probability += log_prob
+#         token_count += 1
+
+#     # Compute the average negative log likelihood
+#     avg_neg_log_likelihood = -total_log_probability / token_count
+
+#     # Compute the perplexity
+#     perplexity = math.exp(avg_neg_log_likelihood)
+
+#     return perplexity
+
+def compute_perplexity(text,opinion):
+    # Split the text into tokens (words or subwords)
+    whole = text+opinion
+    textTokens = text.split()
+    wholeTokens = whole.split()
+
+    # Initialize variables
+    total_log_probability = 0
+    token_count = 0
+
+    for i in range(len(textTokens)+1, len(wholeTokens)+1):
+        # Prepare the prompt for the model
+        prompt = " ".join(wholeTokens[:i])
+#         print(prompt)
+        # Get the model's output
+        response = pplGPT([{"role":"system","content":prompt}])
+        # Get the log probability of the next word
+#         next_word = tokens[i]
+#         print(response)
+    
+        log_prob = response['choices'][0]['logprobs']['content'][0]['logprob']
+#         print(log_prob)
+
+        # Add the log probability to the total
+        total_log_probability += log_prob
+        token_count += 1
+
+    # Compute the average negative log likelihood
+    avg_neg_log_likelihood = -total_log_probability / token_count
+
+    # Compute the perplexity
+    perplexity = math.exp(avg_neg_log_likelihood)
+
+    return perplexity
+
+def compute_polarity(text):
+    pro = "good idea"
+    con = "bad idea"
+    proPerplexity = compute_perplexity(text, pro)
+    conPerplexity = compute_perplexity(text, con)
+    polarity = conPerplexity/(proPerplexity+conPerplexity)
+    return polarity
+
+
+# def embed(sentence: str) -> int:
+#     polarity = TextBlob(sentence).sentiment.polarity
+#     if polarity > 0.75:
+#         return 5  # Positive sentiment
+#     if 0.5 < polarity <= 0.75:
+#         return 4
+#     if 0.25< polarity <=0.5:
+#         return 3
+#     if 0 < polarity<=0.25:
+#         return 2 
+#     elif polarity < 0:
+#         return 0  # Negative sentiment
+#     else:
+#         return 1  # Neutral sentiment
+
+def returnPolarity(sentence: str) -> int:
+#     polarity = TextBlob(sentence).sentiment.polarity
+    bridge = "I more or less agree with my peers. Regarding the idea of a society without gender, I\'d just add the following thought: a society without gender is a pretty"
+    polarity = compute_polarity(sentence+bridge)
+    return polarity
+
+
+    
+def embed(polarity) -> int:
+#     polarity = TextBlob(sentence).sentiment.polarity
+#     bridge = "I more or less agree with my peers. Regarding the idea of a society without gender, I\'d just add the following thought: a society without gender is a pretty"
+#     polarity = compute_polarity(sentence+bridge)
+    if polarity > 0.64:
+        return 4  # Positive sentiment
+    if 0.58 < polarity <= 0.64:
+        return 3
+    if 0.51< polarity <=0.58:
+        return 2
+    if 0.45 < polarity<=0.51:
+        return 1 
+    elif polarity < 0.45:
+        return 0
+
+# In[8]:
+
+def makeInitialPolarity(initialTweetDict):
+    polarityDict = {}
+    for i in initialTweetDict.keys():
+        polarityDict[i] = [returnPolarity(initialTweetDict[i][0])]
+    return polarityDict
+
+def makeInitialEmbed(polarityDict):
+    tweetEmbedDict = {}
+    for i in polarityDict.keys():
+        tweetEmbedDict[i] = [embed(polarityDict[i][0])]
+    return tweetEmbedDict
+
+
+# In[9]:
+
+
+def calculateFollower(followDict):
+    numFollower = {}
+    for i in followDict.keys():
+        for j in followDict[i]:
+            if j not in numFollower.keys():
+                numFollower[j] = 1
+            else:
+                numFollower[j] += 1
+    for i in followDict.keys():
+        if i not in numFollower.keys():
+            numFollower[i] = 0
+    return numFollower
+
+
+# In[10]:
+
+
+def rank(numFollowerDict):
+    ranked_keys = sorted(numFollowerDict, key=numFollowerDict.get, reverse=True)
+    rank_dict = {key: rank for rank, key in enumerate(ranked_keys, start=1)}
+    return rank_dict
+
+
+# In[11]:
+
+
+# def update_link(followDict,polarityDict,linkRate, breakRate, num_same, num_iter):
+#     newFollowDict = copy.deepcopy(followDict)
+#     for i in newFollowDict.keys():
+#         for k in newFollowDict.keys():
+# #             creatlink
+#             if k!= i and k not in newFollowDict[i]:
+#                 for m in range(num_same):
+#                     if abs(polarityDict[i][num_iter-1-m]-polarityDict[k][num_iter-1-m]) <= 0.05:
+#                         continue
+#                     else:
+#                         break
+#                 else:
+#                     linkThreshold = random.uniform(0,1)
+#                     if linkThreshold < linkRate:
+#                         newFollowDict[i].append(k)
+# #                         print(i,k)
+# # breaklink
+# #             if k!= i and k in newFollowDict[i]:
+# #                 for m in range(num_same):
+# #                     if abs(polarityDict[i][num_iter-1-m]-polarityDict[k][num_iter-1-m]) >= 0.1:
+# #                         continue
+# #                     else:
+# #                         break
+# #                 else:
+# #                     linkThreshold = random.uniform(0,1)
+# #                     if linkThreshold < breakRate:
+# #                         newFollowDict[i].remove(k)
+#     return newFollowDict
+
+def update_link(followDict,tweetEmbedDict,linkRate, breakRate, num_same, num_iter):
+    newFollowDict = copy.deepcopy(followDict)
+    for i in newFollowDict.keys():
+        for k in newFollowDict.keys():
+#             creatlink
+            if k!= i and k not in newFollowDict[i]:
+                for m in range(num_same):
+                    if tweetEmbedDict[i][num_iter-1-m] == tweetEmbedDict[k][num_iter-1-m]:
+                        continue
+                    else:
+                        break
+                else:
+                    linkThreshold = random.uniform(0,1)
+                    if linkThreshold < linkRate:
+                        newFollowDict[i].append(k)
+#                         print(i,k)
+# breaklink
+            if k!= i and k in newFollowDict[i]:
+                for m in range(num_same):
+                    if tweetEmbedDict[i][num_iter-1-m] != tweetEmbedDict[k][num_iter-1-m]:
+                        continue
+                    else:
+                        break
+                else:
+                    linkThreshold = random.uniform(0,1)
+                    if linkThreshold < breakRate:
+                        newFollowDict[i].remove(k)
+    return newFollowDict
+
+# In[12]:
+
+
+def rewardCalculate(followDict, newFollowDict,agent):
+    oldPosition = rank(calculateFollower(followDict))[agent]
+    newPosition = rank(calculateFollower(newFollowDict))[agent]
+    if oldPosition-newPosition>0:
+        reward = 1
+    elif oldPosition-newPosition<0:
+        reward = -1
+    else:
+        reward = 0
+    return reward
+
+
+# In[13]:
+
+
+def newRewardCalculate(followDict, newFollowDict,agent):
+    oldFollowerNum = calculateFollower(followDict)[agent]
+    newFollowerNum = calculateFollower(newFollowDict)[agent]
+    return newFollowerNum-oldFollowerNum
+
+
+# In[14]:
+
+
+def finalRewardCalculate(initialFollowDict,newFollowDict,agent):
+    oldPosition = rank(calculateFollower(initialFollowDict))[agent]
+    newPosition = rank(calculateFollower(newFollowDict))[agent]
+    finalReward = 10*(oldPosition-newPosition)
+    return finalReward
+
+
+# In[ ]:
+
+ 
+def locateState(observe_env_agents,slice_space,tweetEmbedDict):
+    index = 0
+    k = 0
+    for i in observe_env_agents:
+        index += tweetEmbedDict[i][-1]*(slice_space**k)
+        k += 1
+    return index
+
+
+def actionRewardCalculate(agentFollower,tweetEmbedDict,actionList,linkRate, breakRate, num_same, num_iter):
+    for i in tweetEmbedDict.keys():
+        if i not in agentFollower:
+            for m in range(num_same):
+                if tweetEmbedDict[i][num_iter-1-m] == actionList[num_iter-1-m]:
+                        continue
+                else:
+                    break
+            else:
+                linkThreshold = random.uniform(0,1)
+                if linkThreshold < linkRate:
+                    agentFollower.append(i)
+        if i in agentFollower:
+            for m in range(num_same):
+                if tweetEmbedDict[i][num_iter-1-m] != actionList[num_iter-1-m]:
+                        continue
+                else:
+                    break
+            else:
+                linkThreshold = random.uniform(0,1)
+                if linkThreshold < linkRate:
+                    agentFollower.remove(i)
+    return agentFollower
