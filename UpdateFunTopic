@@ -75,7 +75,7 @@ def make_request(url,headers,data):
 
 
 def ChatGPT(inputMessage):
-    OPENAI_API_KEY = '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'
+    OPENAI_API_KEY = ''
     # set up the API endpoint URL
     url = "https://api.openai.com/v1/chat/completions"
 
@@ -115,7 +115,7 @@ def ChatGPT(inputMessage):
 
 
 def creativeGPT(inputMessage):
-    OPENAI_API_KEY = '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'
+    OPENAI_API_KEY = ''
     # set up the API endpoint URL
     url = "https://api.openai.com/v1/chat/completions"
 
@@ -148,7 +148,7 @@ def creativeGPT(inputMessage):
     return completed_sentence
 
 def fixGPT(inputMessage):
-    OPENAI_API_KEY = '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'
+    OPENAI_API_KEY = ''
     # set up the API endpoint URL
     url = "https://api.openai.com/v1/chat/completions"
 
@@ -181,7 +181,7 @@ def fixGPT(inputMessage):
     return completed_sentence
 
 def pplGPT(inputMessage):
-    OPENAI_API_KEY = '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'
+    OPENAI_API_KEY = ''
     # set up the API endpoint URL
     url = "https://api.openai.com/v1/chat/completions"
 
