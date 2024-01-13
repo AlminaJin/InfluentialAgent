@@ -160,8 +160,6 @@ def fixGPT(inputMessage):
 
     data = {
         "messages": inputMessage,
-#         "max_tokens": 2000,
-#         "temperature": 0.1,
         "temperature":0.1,
         "top_p":0.5,
         "n": 1,
@@ -169,15 +167,12 @@ def fixGPT(inputMessage):
         "model": "gpt-3.5-turbo"
     }
 
-    # send the API request and get the response
-#     response = requests.post(url, headers=headers, data=json.dumps(data))
+
     response = make_request(url,headers,data)
     
     # extract the completed sentence from the response
     completed_sentence = response.json()
-#     ['choices'][0]['text']
 
-    # print the completed sentence
     return completed_sentence
 
 def pplGPT(inputMessage):
@@ -204,18 +199,12 @@ def pplGPT(inputMessage):
         "logprobs": True
     }
 
-    # send the API request and get the response
-#     response = requests.post(url, headers=headers, data=json.dumps(data))
+
     response = make_request(url,headers,data)
     
-#     if response == "Retry":
-#         completed_sentence = "Retry"
-#     else:
-    # extract the completed sentence from the response
     completed_sentence = response.json()
-#     ['choices'][0]['text']
 
-    # print the completed sentence
+
     return completed_sentence
 
 
@@ -223,7 +212,6 @@ def pplGPT(inputMessage):
 def createInitialTweet(persona):
     inputData = persona[0]+" is "+persona[2]+". "+persona[1]+" posted the following tweet on Twitter: {'data': {'user':'"+persona[0]+ "','text':"
     result = ChatGPT([{"role":"system","content":inputData}])
-#     ['choices'][0]['message']['content']
     while 'choices' not in result.keys():
         print(result)
         result = ChatGPT([{"role":"system","content":inputData}])
@@ -270,13 +258,7 @@ def interactInput(personaKey,personaDict,linkDict,tweetDict,num_iter):
 
 
 def updateFixInteractTweet(sentence, GPTtype):
-#     logging.info(f"Starting process with args: {personaKey,personaDict,linkDict,tweetDict,num_iter, GPTtype}")
-#     sentence = createFirstSentence(personaDict[personaKey])
-#     for i in linkDict[personaKey]:
-#         influencer = personaDict[i]
-#         otherSentence = createOtherSentence(influencer, tweetDict[i][num_iter])
-#         sentence = sentence + otherSentence
-#     sentence = sentence + createFinalSentence(personaDict[personaKey])
+
     if GPTtype == 0:
         result = fixGPT([{"role":"system","content":sentence}])
     if GPTtype == 1:
@@ -289,13 +271,7 @@ def updateFixInteractTweet(sentence, GPTtype):
 
 
 def updateInteractTweet(sentence, GPTtype):
-#     logging.info(f"Starting process with args: {personaKey,personaDict,linkDict,tweetDict,num_iter, GPTtype}")
-#     sentence = createFirstSentence(personaDict[personaKey])
-#     for i in linkDict[personaKey]:
-#         influencer = personaDict[i]
-#         otherSentence = createOtherSentence(influencer, tweetDict[i][num_iter])
-#         sentence = sentence + otherSentence
-#     sentence = sentence + createFinalSentence(personaDict[personaKey])
+
     if GPTtype ==1:
         result = creativeGPT([{"role":"system","content":sentence}])
         while 'choices' not in result.keys():
@@ -309,9 +285,6 @@ def updateInteractTweet(sentence, GPTtype):
     
     outputData = result['choices'][0]['message']['content']
     
-    # #     logging.info(f"Completed process with args: {personaKey,personaDict,linkDict,tweetDict,num_iter, GPTtype}")
-    #     else:
-    #         outputData = "Retry"
     return outputData
      
 
@@ -328,7 +301,6 @@ def updateRetryTweet(sentence,GPTtype):
     return outputData
     
 
-# In[6]:
 
 
 def makeInitialTweet(generateUserDict):
@@ -340,47 +312,7 @@ def makeInitialTweet(generateUserDict):
     return tweetDict
 
 
-# In[7]:
 
-# def compute_perplexity(text,opinion, model="text-davinci-003"):
-#     openai.api_key = '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'
-#     # Split the text into tokens (words or subwords)
-#     whole = text+opinion
-#     textTokens = text.split()
-#     wholeTokens = whole.split()
-
-#     # Initialize variables
-#     total_log_probability = 0
-#     token_count = 0
-
-#     for i in range(len(textTokens), len(wholeTokens)+1):
-#         # Prepare the prompt for the model
-#         prompt = " ".join(wholeTokens[:i])
-
-#         # Get the model's output
-#         response = openai.Completion.create(
-#             engine=model,
-#             prompt=prompt,
-#             max_tokens=1,
-#             n=1,
-#             logprobs=1
-#         )
-
-#         # Get the log probability of the next word
-# #         next_word = tokens[i]
-#         log_prob = response['choices'][0]['logprobs']['token_logprobs'][0]
-
-#         # Add the log probability to the total
-#         total_log_probability += log_prob
-#         token_count += 1
-
-#     # Compute the average negative log likelihood
-#     avg_neg_log_likelihood = -total_log_probability / token_count
-
-#     # Compute the perplexity
-#     perplexity = math.exp(avg_neg_log_likelihood)
-
-#     return perplexity
 
 def compute_perplexity(text,opinion):
     # Split the text into tokens (words or subwords)
@@ -418,41 +350,23 @@ def compute_perplexity(text,opinion):
     return perplexity
 
 def compute_polarity(text):
-    pro = "good idea"
-    con = "bad idea"
+    pro = "I\'d just add the following thought: a society without gender is a pretty good idea"
+    con = "I\'d just add the following thought: a society without gender is a pretty bad idea"
     proPerplexity = compute_perplexity(text, pro)
     conPerplexity = compute_perplexity(text, con)
     polarity = conPerplexity/(proPerplexity+conPerplexity)
     return polarity
 
 
-# def embed(sentence: str) -> int:
-#     polarity = TextBlob(sentence).sentiment.polarity
-#     if polarity > 0.75:
-#         return 5  # Positive sentiment
-#     if 0.5 < polarity <= 0.75:
-#         return 4
-#     if 0.25< polarity <=0.5:
-#         return 3
-#     if 0 < polarity<=0.25:
-#         return 2 
-#     elif polarity < 0:
-#         return 0  # Negative sentiment
-#     else:
-#         return 1  # Neutral sentiment
-
 def returnPolarity(sentence: str) -> int:
 #     polarity = TextBlob(sentence).sentiment.polarity
-    bridge = "I more or less agree with my peers. Regarding the idea of a society without gender, I\'d just add the following thought: a society without gender is a pretty"
+    bridge = "I more or less agree with my peers. Regarding the idea of a society without gender, "
     polarity = compute_polarity(sentence+bridge)
     return polarity
 
 
     
 def embed(polarity) -> int:
-#     polarity = TextBlob(sentence).sentiment.polarity
-#     bridge = "I more or less agree with my peers. Regarding the idea of a society without gender, I\'d just add the following thought: a society without gender is a pretty"
-#     polarity = compute_polarity(sentence+bridge)
     if polarity > 0.64:
         return 4  # Positive sentiment
     if 0.58 < polarity <= 0.64:
@@ -505,37 +419,6 @@ def rank(numFollowerDict):
     return rank_dict
 
 
-# In[11]:
-
-
-# def update_link(followDict,polarityDict,linkRate, breakRate, num_same, num_iter):
-#     newFollowDict = copy.deepcopy(followDict)
-#     for i in newFollowDict.keys():
-#         for k in newFollowDict.keys():
-# #             creatlink
-#             if k!= i and k not in newFollowDict[i]:
-#                 for m in range(num_same):
-#                     if abs(polarityDict[i][num_iter-1-m]-polarityDict[k][num_iter-1-m]) <= 0.05:
-#                         continue
-#                     else:
-#                         break
-#                 else:
-#                     linkThreshold = random.uniform(0,1)
-#                     if linkThreshold < linkRate:
-#                         newFollowDict[i].append(k)
-# #                         print(i,k)
-# # breaklink
-# #             if k!= i and k in newFollowDict[i]:
-# #                 for m in range(num_same):
-# #                     if abs(polarityDict[i][num_iter-1-m]-polarityDict[k][num_iter-1-m]) >= 0.1:
-# #                         continue
-# #                     else:
-# #                         break
-# #                 else:
-# #                     linkThreshold = random.uniform(0,1)
-# #                     if linkThreshold < breakRate:
-# #                         newFollowDict[i].remove(k)
-#     return newFollowDict
 
 def update_link(followDict,tweetEmbedDict,linkRate, breakRate, num_same, num_iter):
     newFollowDict = copy.deepcopy(followDict)
